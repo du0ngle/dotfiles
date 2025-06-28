@@ -7,7 +7,7 @@
 }
 
 window#waybar {
-  background-color: #191724;
+  background-color: rgba(25, 23, 36, 0.8);
   color: #e0def4;
   border-bottom: 2px solid #26233a;
 }
