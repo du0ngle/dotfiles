@@ -1,14 +1,16 @@
 {
-  "display": {
-    "color": {
-      "keys": "#ebbcba",
-      "title": "#c4a7e7",
-      "output": "#e0def4",
-      "separator": "#6e6a86"
-    }
-  },
-  "modules": [
-    "title", "os", "kernel", "uptime", "packages", "shell", "display", "de", "wm", "cpu", "gpu", "memory", "disk", "battery", "locale"
-  ]
+    "display": {
+        "color": {
+            "keys": "#ebbcba",
+            "title": "#c4a7e7",
+            "output": "#8A73E0",
+            "separator": "#c4a7e7"
+        }
+    },
+    "modules": [
+        "title", "os", "kernel", "uptime", "packages", "shell", "display", "de", "wm", "cpu", "gpu", "memory", "disk", "battery", "locale"
+    ]
+
 }
+
 

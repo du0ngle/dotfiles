@@ -5,7 +5,9 @@ fi
 
 PROMPT='%F{#c4a7e7}%n@%m%f %F{#ebbcba}%~%f %F{105}>%f '
 
-fastfetch
+fastfetch --logo arch \
+  --logo-color-1 "#ebbcba" \
+  --logo-color-2 "#c4a7e7"
 
 # ------------ Alias ------------ 
 alias dotfiles="git --git-dir=$HOME/.dotfiles --work-tree=$HOME"
