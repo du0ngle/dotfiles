@@ -12,6 +12,7 @@ fastfetch --logo arch \
 # ------------ Alias ------------ 
 alias dotfiles="git --git-dir=$HOME/.dotfiles --work-tree=$HOME"
 alias v="nvim"
+alias reboot-windows='sudo grub-reboot "Windows Boot Manager (on /dev/nvme0n1p1)" && sudo reboot'
 
 # ------------ Functions ------------ 
 fzfcd() {
