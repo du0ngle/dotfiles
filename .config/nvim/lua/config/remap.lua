@@ -58,25 +58,11 @@ vim.keymap.set("n", "<C-k>", "<PageUp>zz")
 vim.keymap.set("v", "<C-j>", "<PageDown>zz")
 vim.keymap.set("v", "<C-k>", "<PageUp>zz")
 
--- -- Toggle diff split-viewer 
--- local diffState = false
--- local function toggleDiff()
---     vim.api.nvim_command(diffState and "windo diffoff" or "windo diffthis")
---     diffState = not diffState
--- end
--- vim.keymap.set("n", "<leader>D", toggleDiff, { desc = "Diff split view" })
-
 -- Open terminal in split view
 vim.keymap.set("n", "<leader>T", function() vim.api.nvim_command(":vertical terminal") end, { desc = "Open terminal in split view" })
 
 -- Go normal mode in terminal
 vim.api.nvim_set_keymap('t', '<ESC>', '<C-\\><C-n>', { noremap = true })
-
--- Open PMV files
-vim.keymap.set("n", "<leader>ft", ":1ToggleTerm<Enter>icd 'C:/Temp/PMVToolingReleases/'<enter>fzfcdo<enter><C-v><Enter>", { desc = "Open tools in split view" })
-vim.keymap.set("n", "<leader>fl", ":1ToggleTerm<Enter>icd 'C:/Temp/Logs'<enter>fzfv<enter>", { desc = "Open logs" })
-vim.keymap.set("n", "<leader>fi", ":1ToggleTerm<Enter>icd 'C:/Users/Duong/OneDrive - Raboweb/PMV internal/'<enter>fzfo<enter>", { desc = "Open PMV internal" })
-vim.keymap.set("n", "<leader>fe", ":1ToggleTerm<Enter>icd 'C:/Users/Duong/OneDrive - Raboweb/PMV external/'<enter>fzfo<enter>", { desc = "Open PMV external" })
 
 -- Copy current directory, file to clipboard
 vim.api.nvim_set_keymap('n', '<leader>Yd', '<cmd>let @*=expand("%:p:h")<CR>', { noremap = true, silent = true })

@@ -21,13 +21,12 @@ vim.opt.updatetime = 50
 
 vim.opt.clipboard = "unnamedplus"
 
+vim.g.clipboard = 'osc52'
+
 vim.g.netrw_bufsettings = 'noma nomod nu nowrap ro nobl'
 
 vim.opt.cursorline = true
 vim.opt.hlsearch = true
-
-vim.opt.shellxquote = ''
-vim.opt.shellquote = ''
 
 vim.opt.fixeol = false
 
@@ -35,10 +34,10 @@ vim.api.nvim_create_augroup('highlight_yank', {})
 vim.api.nvim_create_autocmd('TextYankPost', {
   group = 'highlight_yank',
   callback = function()
-    vim.highlight.on_yank({higroup='IncSearch', timeout=150})
+    vim.hl.on_yank({higroup='IncSearch', timeout=150})
   end,
 })
 
-
 vim.opt.tags = { './tags', '../tags',  './ctags', '../ctags',  './.tags', '../.tags',  './.ctags', '../.ctags'}
+
 
