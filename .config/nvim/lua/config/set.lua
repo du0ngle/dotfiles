@@ -21,8 +21,6 @@ vim.opt.updatetime = 50
 
 vim.opt.clipboard = "unnamedplus"
 
-vim.g.clipboard = 'osc52'
-
 vim.g.netrw_bufsettings = 'noma nomod nu nowrap ro nobl'
 
 vim.opt.cursorline = true
@@ -39,5 +37,3 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 })
 
 vim.opt.tags = { './tags', '../tags',  './ctags', '../ctags',  './.tags', '../.tags',  './.ctags', '../.ctags'}
-
-

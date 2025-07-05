@@ -8,4 +8,3 @@ return function()
     filetypes = { "c", "cpp" },
   })
 end
-

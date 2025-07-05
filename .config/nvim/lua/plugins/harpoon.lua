@@ -1,6 +1,5 @@
 return {
     "ThePrimeagen/harpoon",
-    keys = { "<leader>1", "<leader>2", "<leader>3", "<leader>4" },
 
     config = function()
         local mark = require("harpoon.mark")

@@ -66,5 +66,3 @@ require("lazy").setup("plugins",{
         -- concurrency = 20, -- Use the number of logical processors
         concurrency = vim.loop.available_parallelism(), -- Set concurrency to the maximum available
     })
-
-
