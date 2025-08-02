@@ -1,7 +1,7 @@
 return{
     'nvim-treesitter/nvim-treesitter',
     run = ':TSUpdate',
-    ft = { "cs", "python", "tex", "txt", "xml" ,"lua", "markdown" },
+    ft = { "cs", "python", "tex", "txt", "xml" ,"lua", "markdown", "cpp" },
 
     config = function()
         require'nvim-treesitter.configs'.setup {

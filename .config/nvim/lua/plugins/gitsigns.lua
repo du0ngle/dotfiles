@@ -1,6 +1,6 @@
 return {
     "lewis6991/gitsigns.nvim",
-    ft = { "cs", "python", "tex", "txt", "xml", "lua", "markdown" },
+    ft = { "cs", "python", "tex", "txt", "xml", "lua", "markdown", "cpp" },
 
     config = function()
         require('gitsigns').setup {

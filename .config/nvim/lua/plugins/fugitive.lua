@@ -1,6 +1,6 @@
 return {
     "tpope/vim-fugitive",
-    ft = { "cs", "python", "tex", "txt", "xml", "lua", "markdown"},
+    ft = { "cs", "python", "tex", "txt", "xml", "lua", "markdown", "cpp" },
 
     config = function()
 
