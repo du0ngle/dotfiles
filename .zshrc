@@ -28,3 +28,6 @@ source ~/.zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 source ~/.zsh/plugins/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh
 
 eval "$(zoxide init zsh)"
+
+# ------------ LSP ------------ 
+export PATH="$HOME/.dotnet/tools:$PATH"
