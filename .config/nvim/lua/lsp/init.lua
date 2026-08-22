@@ -39,3 +39,29 @@ vim.api.nvim_create_autocmd("FileType", {
   pattern = { "cs" },
   callback = require("lsp.csharp"),
 })
+
+
+--------- Python ---------
+-- pyright: types, completion, navigation. ruff: lint + format.
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "python" },
+  callback = require("lsp.python"),
+})
+
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "python" },
+  callback = require("lsp.ruff"),
+})
+
+-- Format Python on save, always through ruff.
+vim.api.nvim_create_autocmd("BufWritePre", {
+  pattern = "*.py",
+  callback = function()
+    vim.lsp.buf.format({
+      timeout_ms = 2000,
+      filter = function(client)
+        return client.name == "ruff"
+      end,
+    })
+  end,
+})

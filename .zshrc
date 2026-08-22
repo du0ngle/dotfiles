@@ -11,8 +11,10 @@ fastfetch --logo arch \
 
 # ------------ Alias ------------ 
 alias dotfiles="git --git-dir=$HOME/.dotfiles --work-tree=$HOME"
+alias dfs="git --git-dir=$HOME/.dotfiles --work-tree=$HOME status --short --untracked-files=no"
+alias dfd="git --git-dir=$HOME/.dotfiles --work-tree=$HOME diff"
 alias v="nvim"
-alias reboot-windows='sudo grub-reboot "Windows Boot Manager (on /dev/nvme0n1p1)" && sudo reboot'
+alias reboot-windows='sudo grub-reboot osprober-efi-40C7-5064 && sudo reboot'
 
 # ------------ Functions ------------ 
 fzfcd() {
@@ -31,3 +33,4 @@ eval "$(zoxide init zsh)"
 
 # ------------ LSP ------------ 
 export PATH="$HOME/.dotnet/tools:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
