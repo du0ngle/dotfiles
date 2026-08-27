@@ -3,7 +3,8 @@ return {
     dependencies = {
         {"rcarriga/nvim-dap-ui"},
         {"nvim-neotest/nvim-nio"},
-        {"theHamsta/nvim-dap-virtual-text"}
+        {"theHamsta/nvim-dap-virtual-text"},
+        {"mfussenegger/nvim-dap-python"}
     },
 
     config = function()
@@ -38,6 +39,62 @@ return {
             },
         }
 
+
+        -- Python (debugpy lives in its own venv; the debuggee still runs
+        -- with the project's interpreter, resolved by nvim-dap-python)
+        local dap_python = require("dap-python")
+        dap_python.setup(vim.fn.expand("~/.virtualenvs/debugpy/bin/python"), {
+            include_configs = false,
+        })
+
+        -- Project root of the current buffer, used as cwd for the debuggee.
+        local function project_root()
+            return vim.fs.root(0, { "pyproject.toml", "setup.py", "setup.cfg", ".git" })
+                or vim.fn.getcwd()
+        end
+
+        dap.configurations.python = {
+            {
+                name = "Launch file",
+                type = "python",
+                request = "launch",
+                program = "${file}",
+                cwd = project_root,
+                console = "integratedTerminal",
+                justMyCode = false,
+            },
+            {
+                name = "Launch file with args",
+                type = "python",
+                request = "launch",
+                program = "${file}",
+                args = function()
+                    local input = vim.fn.input("Args: ")
+                    return vim.split(input, " ", { trimempty = true })
+                end,
+                cwd = project_root,
+                console = "integratedTerminal",
+                justMyCode = false,
+            },
+            {
+                name = "Launch module",
+                type = "python",
+                request = "launch",
+                module = function()
+                    return vim.fn.input("Module: ", "trade_explorer.")
+                end,
+                cwd = project_root,
+                console = "integratedTerminal",
+                justMyCode = false,
+            },
+            {
+                name = "Attach (remote, port 5678)",
+                type = "python",
+                request = "attach",
+                connect = { host = "127.0.0.1", port = 5678 },
+                justMyCode = false,
+            },
+        }
 
         -- Virtual text
         require("nvim-dap-virtual-text").setup()
