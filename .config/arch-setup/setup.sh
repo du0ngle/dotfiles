@@ -132,34 +132,44 @@ grep -qxF '**/.claude/settings.local.json' "$HOME/.config/git/ignore" 2>/dev/nul
   || echo '**/.claude/settings.local.json' >> "$HOME/.config/git/ignore"
 
 # --- 6. Dotfiles ----------------------------------------------------------
+# Declarative on purpose: assert the end state rather than branching on how we
+# got here. Each step is a no-op when already satisfied, so this behaves the
+# same whether the repo was cloned by this script, cloned by hand to get hold
+# of this script, or sparse-checked-out with only the bootstrapper.
+dotgit() { git --git-dir="$HOME/.dotfiles" --work-tree="$HOME" "$@"; }
+
 if [ ! -d "$HOME/.dotfiles" ]; then
   say "Cloning dotfiles"
   git clone --bare "$DOTFILES_CLONE_URL" "$HOME/.dotfiles"
-  dotgit() { git --git-dir="$HOME/.dotfiles" --work-tree="$HOME" "$@"; }
-
-  # A fresh $HOME can already hold a file this repo tracks -- zsh writes a
-  # .zshrc on first run, a GTK app writes .config/gtk-3.0/settings.ini, and so
-  # on. checkout refuses to clobber those and exits 1, which under `set -e`
-  # would kill the script here. Move them aside and retry instead.
-  if ! dotgit checkout 2>/dev/null; then
-    conflicts="$(dotgit checkout 2>&1 || true)"
-    conflicts="$(printf '%s\n' "$conflicts" | awk '/^\t/ {print $1}')"
-    backup="$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"
-    say "Moving pre-existing files aside to $backup"
-    printf '%s\n' "$conflicts" | while read -r f; do
-      [ -n "$f" ] || continue
-      mkdir -p "$backup/$(dirname "$f")"
-      mv "$HOME/$f" "$backup/$f"
-      echo "  $f"
-    done
-    dotgit checkout
-  fi
-
-  dotgit config status.showUntrackedFiles no
-  dotgit remote set-url origin "$DOTFILES_REMOTE"
-else
-  say "Dotfiles already present, leaving them alone"
 fi
+
+say "Checking out dotfiles"
+# Widen a bootstrap sparse-checkout to the whole tree. `config --unset` is not
+# enough: it leaves the skip-worktree bits set in the index, so checkout would
+# not re-materialise the excluded files. `sparse-checkout disable` clears them.
+# No-op when sparse checkout was never enabled.
+dotgit sparse-checkout disable 2>/dev/null || true
+
+# $HOME may already hold a file this repo tracks -- zsh writes a .zshrc on
+# first run, a GTK app writes .config/gtk-3.0/settings.ini. checkout refuses to
+# clobber those and exits 1, which under `set -e` would kill the script here.
+# Move them aside and retry instead.
+if ! dotgit checkout 2>/dev/null; then
+  conflicts="$(dotgit checkout 2>&1 || true)"
+  conflicts="$(printf '%s\n' "$conflicts" | awk '/^\t/ {print $1}')"
+  backup="$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"
+  say "Moving pre-existing files aside to $backup"
+  printf '%s\n' "$conflicts" | while read -r f; do
+    [ -n "$f" ] || continue
+    mkdir -p "$backup/$(dirname "$f")"
+    mv "$HOME/$f" "$backup/$f"
+    echo "  $f"
+  done
+  dotgit checkout
+fi
+
+dotgit config status.showUntrackedFiles no
+dotgit remote set-url origin "$DOTFILES_REMOTE"
 
 # --- 7. Things pacman does not cover -------------------------------------
 say "zsh plugins"
