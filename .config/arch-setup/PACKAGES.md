@@ -1,38 +1,20 @@
 # Package reference
 
-Why each package in `packages.txt` and `aur.txt` is installed. The what is left
-to `pacman -Qi`; this file records the reason, which pacman cannot know.
+Why each package in `packages.txt` and `aur.txt` is installed. What they are is
+left to `pacman -Qi`.
 
-**Scope is this desktop.** A second Arch machine (laptop) checks out the
-same dotfiles repo but is deliberately not covered here. Items marked *laptop*
-are live there and inert on this machine.
-
-`packages.txt` lists **every explicitly installed package** and matches
-`pacman -Qqen` exactly — 69 entries. That invariant is checkable in one
-command, and it is what makes the file trustworthy.
-
-Listing everything rather than a minimal set also avoids a real trap.
-`nvidia-utils` and `pipewire-jack` are reachable only through *virtual*
-dependencies — `opengl-driver` and `jack` — which `mesa` and `jack2` also
-provide. Trimming them as "redundant" could leave a rebuild with mesa and no
-nvidia driver. Being explicit removes the guesswork.
-
-Packages installed purely as dependencies are still omitted; they return on
-their own.
-
-`setup.sh` pins every package to the **2026/08/22** Arch Archive snapshot —
-the date of the last full upgrade, not the date the script was written.
-
----
+`packages.txt` matches `pacman -Qqen` exactly (69 entries). Packages installed
+only as dependencies are left out. Scope is this desktop; the laptop shares the
+dotfiles repo but not this list.
 
 ## Base and boot
 
 | Package | Reason |
 |---|---|
-| `base`, `base-devel` | Minimal Arch set, plus the build tools `makepkg` needs for AUR packages |
+| `base`, `base-devel` | Minimal Arch set, plus the build tools `makepkg` needs |
 | `sudo` | `setup.sh` and daily admin |
-| `grub`, `efibootmgr` | Bootloader, and the EFI boot entries `grub-install` writes |
-| `os-prober` | Finds the Windows install. The `reboot-windows` alias reboots into the `osprober-efi-40C7-5064` entry |
+| `grub`, `efibootmgr` | Bootloader and its EFI boot entries |
+| `os-prober` | Finds the Windows install. The `reboot-windows` alias uses the `osprober-efi-40C7-5064` entry |
 | `intel-ucode` | CPU microcode, loaded by the `microcode` mkinitcpio hook |
 
 ## Kernels and firmware
@@ -41,47 +23,50 @@ the date of the last full upgrade, not the date the script was written.
 |---|---|
 | `linux` | Daily driver |
 | `linux-lts` | Fallback when a mainline bump breaks nvidia or the NIC |
-| `linux-headers`, `linux-lts-headers` | DKMS builds `atlantic` against **both** kernels |
-| `linux-firmware`, `linux-firmware-nvidia` | Device firmware; the nvidia set is split out upstream and `nvidia-open` needs it |
+| `linux-headers`, `linux-lts-headers` | DKMS builds `atlantic` against both kernels |
+| `linux-firmware`, `linux-firmware-nvidia` | Device firmware; `nvidia-open` needs the nvidia set |
 | `sof-firmware` | Onboard audio DSP |
 
 ## Graphics
 
-An Intel iGPU and an nvidia dGPU, so both stacks are present.
+Intel iGPU and nvidia dGPU, so both stacks are present.
 
 | Package | Reason |
 |---|---|
-| `nvidia-open`, `nvidia-utils` | The dGPU, and the EGL/Vulkan/VA-API libraries Hyprland renders through |
+| `nvidia-open`, `nvidia-utils` | The dGPU, and the EGL/Vulkan/VA-API libraries Hyprland renders through. Keep `nvidia-utils` listed: it satisfies `opengl-driver`, which `mesa` also provides |
 | `intel-media-driver`, `vulkan-intel` | VA-API decode and Vulkan on the iGPU |
 | `mesa-utils` | Diagnosing which GPU a program landed on |
 
 `setup.sh` writes `/etc/modprobe.d/nvidia.conf` with `nvidia-drm modeset=1`,
-which Hyprland requires on nvidia. Since `mkinitcpio.conf` uses the `kms` hook,
-the drop-in must be baked into the initramfs — hence the `mkinitcpio -P`.
+which Hyprland needs on nvidia, then runs `mkinitcpio -P` so the drop-in lands
+in the initramfs where the `kms` hook reads it.
 
 ## Desktop (Hyprland / Wayland)
 
 | Package | Reason |
 |---|---|
 | `hyprland` | The compositor |
-| `waybar` | Status bar, `exec-once`. Pulls in `playerctl`, which drives the media keys |
+| `waybar` | Status bar, `exec-once`. Pulls in `playerctl` for the media keys |
 | `wofi` | Launcher, SUPER+TAB |
 | `swaybg` | Wallpaper, `exec-once` |
 | `kitty` | Terminal, SUPER+T |
-| `thunar` | File manager, SUPER+E via `$fileManager` |
+| `thunar` | File manager, SUPER+E |
 | `ttf-jetbrains-mono-nerd` | Named in `waybar/style.css`; kitty inherits it as default monospace |
-| `wl-clipboard`, `xclip` | Clipboard for Wayland-native and XWayland programs respectively |
+| `wl-clipboard`, `xclip` | Clipboard for Wayland and XWayland programs |
 | `wayland-utils` | Checking which protocols the compositor exposes |
+
+The `XF86MonBrightness` bindings in `hyprland.conf` call `brightnessctl`, which
+is installed on the laptop only. They do nothing here; `DP-3`'s brightness is on
+the monitor itself.
 
 ## Audio
 
 | Package | Reason |
 |---|---|
-| `pipewire-pulse`, `pipewire-alsa`, `pipewire-jack` | The audio server, plus ALSA and JACK compatibility |
+| `pipewire-pulse`, `pipewire-alsa`, `pipewire-jack` | Audio server, plus ALSA and JACK compatibility. Keep `pipewire-jack` listed: it satisfies `jack`, which `jack2` also provides |
 | `alsa-utils` | `alsamixer` when nothing comes out |
 
-These pull in `wireplumber`, which provides `wpctl` — every volume binding in
-`hyprland.conf` calls it.
+These pull in `wireplumber`, which provides the `wpctl` every volume binding calls.
 
 ## Peripherals
 
@@ -89,19 +74,19 @@ These pull in `wireplumber`, which provides `wpctl` — every volume binding in
 |---|---|
 | `bluez`, `bluez-utils` | `bluetooth.service` is enabled; `bluetoothctl` pairs from the terminal |
 | `usbutils` | `lsusb` |
-| `libwacom` | No tablet attached, but `hyprland` → `libinput` → `libwacom` brings it regardless |
+| `libwacom` | No tablet attached; it comes via `hyprland` → `libinput` regardless |
 
 ## Networking
 
 | Package | Reason |
 |---|---|
-| `atlantic-dkms` *(AUR)* | **This board's ethernet.** `enp3s0` binds to the `atlantic` driver. The first thing to reconsider on other hardware |
+| `atlantic-dkms` *(AUR)* | This board's ethernet. `enp3s0` binds to the `atlantic` driver. First thing to reconsider on other hardware |
 | `networkmanager` | Manages `enp3s0` and `wlan0` |
-| `iwd` | Wifi backend. `wlan0` is down; ethernet is the live link |
+| `iwd` | Wifi backend. `wlan0` is down, ethernet is the live link; kept as a fallback |
 | `openssh` | `sshd` for remote login, and git over SSH |
-| `tailscale` | Mesh VPN; `tailscale0` is up |
+| `tailscale` | Mesh VPN |
 | `bind` | `dig` and `nslookup`. The daemon is not enabled |
-| `ethtool`, `wakeonlan` | Inspecting the Aquantia link, arming and sending Wake-on-LAN |
+| `ethtool`, `wakeonlan` | Inspecting the link, arming and sending Wake-on-LAN |
 | `wget` | Scripts and one-off fetches |
 
 ## Shell and terminal
@@ -117,8 +102,8 @@ These pull in `wireplumber`, which provides `wpctl` — every volume binding in
 | `fastfetch` | Banner at the top of every shell |
 | `7zip` | General extraction |
 
-`setup.sh` also clones two zsh plugins at pinned commits: `zsh-autosuggestions`
-and `fast-syntax-highlighting`.
+`setup.sh` also clones `zsh-autosuggestions` and `fast-syntax-highlighting` at
+pinned commits.
 
 ## Editor and toolchains
 
@@ -132,12 +117,11 @@ and `fast-syntax-highlighting`.
 | `uv` | Creates the debugpy venv and installs `ruff`; the only Python tooling |
 | `docker`, `docker-buildx` | `docker.service` is enabled, user is in the `docker` group |
 
-`go` is absent from `packages.txt` — it arrives as a build dependency of `yay`.
+`go` is not listed; it arrives as a build dependency of `yay`.
 
 ### Outside pacman
 
-Pinned in `setup.sh` because no repo package matches the wanted version, and
-because nvim references several by absolute path.
+Pinned in `setup.sh`. Nvim references several by absolute path.
 
 | Tool | Version | Source | Used by |
 |---|---|---|---|
@@ -146,7 +130,7 @@ because nvim references several by absolute path.
 | `ruff` | 0.16.4 | `uv tool` | `lsp/ruff.lua` |
 | `csharp-ls` | 0.18.0 | `dotnet tool` | `lsp/csharp.lua` |
 | `codelldb` | 1.11.5 | vsix | `plugins/dap.lua:19` |
-| `debugpy` | 1.8.21 | uv venv | `dap.lua:46`, kept out of project venvs |
+| `debugpy` | 1.8.21 | uv venv | `dap.lua:46` |
 | `@openai/codex` | 0.130.0 | npm | CLI |
 
 ## Filesystems, apps, package management
@@ -160,30 +144,13 @@ because nvim references several by absolute path.
 | `yay` *(AUR)* | Installs `atlantic-dkms`. `setup.sh` bootstraps it from source |
 | `reflector` | Ranks mirrors. The timer is disabled; `setup.sh` writes the mirrorlist itself |
 
----
+## Snapshot
 
-## Loose ends
+`setup.sh` pins every package to the 2026/08/22 Arch Archive snapshot, the date
+of the last full upgrade. Re-derive it after any `pacman -Syu`:
 
-**The brightness keys are laptop-only, annotated in place.**
-`XF86MonBrightness{Up,Down}` call `brightnessctl`, which drives a laptop panel
-backlight. They are kept active with a remark above them: they work on the
-laptop and do nothing here, where `DP-3`'s brightness lives in the monitor's
-own OSD.
+```
+grep 'starting full system upgrade' /var/log/pacman.log | tail -1
+```
 
-The rule: **`hyprland.conf` is shared with the laptop, so a one-machine
-binding gets a remark, not a deletion.** `packages.txt` is not shared.
-
-**`iwd` is kept though `wlan0` is down.** The Qualcomm WCN785x Wi-Fi 7 hardware
-is real; ethernet is simply the live link. It is the fallback if the Aquantia
-NIC ever fails.
-
-**`xf86-video-intel` was removed** (2026-08-28) — an X.org DDX driver on a
-Wayland-only desktop, with nothing depending on it.
-
-**`libwacom` is listed but was never a choice.** No tablet is attached; it
-arrives because Hyprland does all input through `libinput`, which requires it.
-It is listed because it is explicitly installed, not because it is wanted.
-
-**No credentials are captured.** `~/.ssh`, the tailscale auth key, and
-`~/.claude/.credentials.json` are outside both repos. `setup.sh` clones the
-dotfiles over HTTPS, needing no key, then switches `origin` to SSH for pushing.
+The same date is in `dev-environment/Dockerfile`; keep the two equal.
