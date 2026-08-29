@@ -53,6 +53,12 @@ return {
                 or vim.fn.getcwd()
         end
 
+        -- .venv-devbox inside the box, .venv on the host.
+        dap_python.resolve_python = function()
+            local venv = os.getenv("UV_PROJECT_ENVIRONMENT") or ".venv"
+            return project_root() .. "/" .. venv .. "/bin/python"
+        end
+
         dap.configurations.python = {
             {
                 name = "Launch file",
