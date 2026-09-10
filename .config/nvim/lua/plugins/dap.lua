@@ -21,6 +21,35 @@ return {
             }
         }
 
+        -- Keep stepping in code that has source: step into skips std:: and
+        -- gtest (testing::) internals, and stepping out of a test body runs
+        -- on instead of stopping in libgtest, which has no debug info.
+        local lldb_step_settings = {
+            "settings set target.process.thread.step-avoid-regexp ^(std|testing)::",
+            "settings set target.process.thread.step-out-avoid-nodebug true",
+        }
+        -- codelldb breaks on every C++ throw by default (cpp_throw), even when
+        -- the code catches it, and stops inside libstdc++ with no source.
+        -- :lua require("dap").set_exception_breakpoints() turns it back on.
+        dap.defaults.codelldb.exception_breakpoints = {}
+
+        -- The dap console evaluates C++ as typed, like VS's Immediate Window:
+        -- console mode "evaluate", with LLDB's native C++ evaluator so calls like
+        -- a.Value() work (codelldb's default one can't call functions). LLDB
+        -- commands need a leading backtick (`bt).
+        dap.listeners.on_config["codelldb_settings"] = function(config)
+            if config.type ~= "codelldb" then
+                return config
+            end
+            local commands = vim.list_extend(vim.deepcopy(config.initCommands or {}), lldb_step_settings)
+            local adapter_settings = vim.tbl_extend("force", config._adapterSettings or {}, { consoleMode = "evaluate" })
+            return vim.tbl_extend("force", config, {
+                initCommands = commands,
+                _adapterSettings = adapter_settings,
+                expressions = config.expressions or "native",
+            })
+        end
+
         -- Languages
         dap.configurations.cpp = {
             {
@@ -69,44 +98,50 @@ return {
                 console = "integratedTerminal",
                 justMyCode = false,
             },
-            {
-                name = "Launch file with args",
-                type = "python",
-                request = "launch",
-                program = "${file}",
-                args = function()
-                    local input = vim.fn.input("Args: ")
-                    return vim.split(input, " ", { trimempty = true })
-                end,
-                cwd = project_root,
-                console = "integratedTerminal",
-                justMyCode = false,
-            },
-            {
-                name = "Launch module",
-                type = "python",
-                request = "launch",
-                module = function()
-                    return vim.fn.input("Module: ", "trade_explorer.")
-                end,
-                cwd = project_root,
-                console = "integratedTerminal",
-                justMyCode = false,
-            },
-            {
-                name = "Attach (remote, port 5678)",
-                type = "python",
-                request = "attach",
-                connect = { host = "127.0.0.1", port = 5678 },
-                justMyCode = false,
-            },
+            -- {
+            --     name = "Launch file with args",
+            --     type = "python",
+            --     request = "launch",
+            --     program = "${file}",
+            --     args = function()
+            --         local input = vim.fn.input("Args: ")
+            --         return vim.split(input, " ", { trimempty = true })
+            --     end,
+            --     cwd = project_root,
+            --     console = "integratedTerminal",
+            --     justMyCode = false,
+            -- },
+            -- {
+            --     name = "Launch module",
+            --     type = "python",
+            --     request = "launch",
+            --     module = function()
+            --         return vim.fn.input("Module: ", "trade_explorer.")
+            --     end,
+            --     cwd = project_root,
+            --     console = "integratedTerminal",
+            --     justMyCode = false,
+            -- },
+            -- {
+            --     name = "Attach (remote, port 5678)",
+            --     type = "python",
+            --     request = "attach",
+            --     connect = { host = "127.0.0.1", port = 5678 },
+            --     justMyCode = false,
+            -- },
         }
 
         -- Virtual text
         require("nvim-dap-virtual-text").setup()
 
         -- DAP UI
-        dapui.setup()
+        -- In the call stack, <CR> jumps to the frame (dap-ui only maps "o" for
+        -- that). Other panels keep <CR> for expanding variables.
+        dapui.setup({
+            element_mappings = {
+                stacks = { open = { "<CR>", "o" } },
+            },
+        })
         dap.listeners.before.attach.dapui_config = function()
             dapui.open()
         end
@@ -166,6 +201,25 @@ return {
 
         -- Evaluate variable under cursor
         vim.keymap.set("n", "<leader>?", function() dapui.eval(nil, { enter = true }) end, { desc = "Evaluate" } )
+
+        -- Jump to a dap-ui panel: its window if the layout is open, else a float.
+        local function focus_element(name)
+            local buf = dapui.elements[name].buffer()
+            for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+                if vim.api.nvim_win_get_buf(win) == buf then
+                    vim.api.nvim_set_current_win(win)
+                    return
+                end
+            end
+            dapui.float_element(name, { enter = true })
+        end
+
+        vim.keymap.set("n", "<leader>di", function()
+            focus_element("repl")
+            vim.cmd("startinsert!")
+        end, { desc = "Focus debug console" })
+        vim.keymap.set("n", "<leader>dc", function() focus_element("stacks") end, { desc = "Focus call stack" })
+        vim.keymap.set("n", "<leader>dw", function() focus_element("watches") end, { desc = "Focus watches" })
 
         vim.keymap.set("n", "<leader>db", dap.step_back, { desc = "Step back" })
         vim.keymap.set("n", "<leader>dC", dap.clear_breakpoints, { desc = "Clear breakpoints" })
