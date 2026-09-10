@@ -98,37 +98,6 @@ return {
                 console = "integratedTerminal",
                 justMyCode = false,
             },
-            -- {
-            --     name = "Launch file with args",
-            --     type = "python",
-            --     request = "launch",
-            --     program = "${file}",
-            --     args = function()
-            --         local input = vim.fn.input("Args: ")
-            --         return vim.split(input, " ", { trimempty = true })
-            --     end,
-            --     cwd = project_root,
-            --     console = "integratedTerminal",
-            --     justMyCode = false,
-            -- },
-            -- {
-            --     name = "Launch module",
-            --     type = "python",
-            --     request = "launch",
-            --     module = function()
-            --         return vim.fn.input("Module: ", "trade_explorer.")
-            --     end,
-            --     cwd = project_root,
-            --     console = "integratedTerminal",
-            --     justMyCode = false,
-            -- },
-            -- {
-            --     name = "Attach (remote, port 5678)",
-            --     type = "python",
-            --     request = "attach",
-            --     connect = { host = "127.0.0.1", port = 5678 },
-            --     justMyCode = false,
-            -- },
         }
 
         -- Virtual text
